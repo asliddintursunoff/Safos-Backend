@@ -16,6 +16,7 @@ class Order(Base):
     for_who = Column(String(150))
     order_date = Column(DateTime,default=datetime.now)
     update_date = Column(DateTime,nullable=True)
+    delivered_date = Column(DateTime,nullable=True)
     is_approved = Column(Boolean,default=True)
     is_delivered = Column(Boolean,default = False)
 

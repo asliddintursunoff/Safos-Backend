@@ -228,6 +228,7 @@ def is_order_delivered(db: Session, order_id: int, b: bool):
             return order  # just return the order
         
         order.is_delivered = True
+        order.delivered_date = datetime.now()
         
         if order.agent:
             order.agent.total_earned_salary += order.agent_locked_price * order.agent.percentage / 100
@@ -245,6 +246,7 @@ def is_order_delivered(db: Session, order_id: int, b: bool):
             return order  # just return the order
         
         order.is_delivered = False
+        order.delivered_date = None
         
         if order.agent:
             order.agent.total_earned_salary -= order.agent_locked_price * order.agent.percentage / 100

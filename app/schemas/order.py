@@ -16,6 +16,7 @@ class OrderCreate(BaseModel):
     items:Optional[List[OrderItemCreate]]
     order_date:Optional[datetime] = None
     update_date:Optional[datetime] = None
+    delivered_date:Optional[datetime]=None 
     is_approved:Optional[bool] = True
     user_chat_id: Optional[str] = None
     user_message_id: Optional[int] = None
@@ -42,7 +43,8 @@ class OrderOut(BaseModel):
     for_who:str
     items: List[OrderItemOut]   # 👈 FIXED
     order_date: datetime
-    update_date: Optional[datetime] = None  # 👈 nullable in DB
+    update_date: Optional[datetime] = None
+    delivered_date:Optional[datetime]=None  # 👈 nullable in DB
     is_approved: bool
     is_delivered:bool
     get_total_price: Optional[float]
