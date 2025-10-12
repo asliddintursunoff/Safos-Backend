@@ -95,7 +95,7 @@ def get_order(order_id: int, db: Session = Depends(get_db), current_user: Agent 
     order = crud.get_order(db, order_id)
     if not order:
         raise HTTPException(404, "Order not found")
-    require_dostavchik_or_admin(current_user, order.agent_id)
+    require_self_or_dostavchik_or_admin(current_user, order.agent_id)
     return order
 
 
