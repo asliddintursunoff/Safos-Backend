@@ -17,7 +17,7 @@ class Agent(Base):
     percentage = Column(Float,default=0)
     total_given_salary = Column(Float, default=0)
     role = Column(SQLEnum(UserRole), default=UserRole.agent)
-    telegram_id = Column(BigInteger, unique=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, nullable=True)
     orders = relationship("Order",back_populates="agent")
     
     orders = relationship(
