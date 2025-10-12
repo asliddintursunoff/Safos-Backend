@@ -70,8 +70,7 @@ def create_order(
         order_in.is_approved = True
     else:
         order_in.is_approved = True
-        if order_in.agent_id != current_user.id:
-            raise HTTPException(403, "Agents can only create orders for themselves")
+       
 
     order = crud.create_order(db, order_in)
     return order
