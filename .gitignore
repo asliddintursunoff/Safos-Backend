@@ -94,3 +94,29 @@ __pycache__/
 # Virtual environment
 .venv/
 env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info
+
+# Virtual environment
+env/
+venv/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+
+# MacOS files
+.DS_Store
+
