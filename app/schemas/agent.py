@@ -3,9 +3,11 @@ from enum import Enum
 from app.models.agent import UserRole
 from typing import Optional
 class AgentBase(BaseModel):
+    telegram_id:Optional[int] = None
     first_name:str
     last_name:str
     phone_number:str
+    percentage:float
     role:Optional[UserRole] = UserRole.agent
     
     class Config:
@@ -16,8 +18,10 @@ class CreateAgent(AgentBase):
 class AgentOut(AgentBase):
     id: int
     total_given_salary:float
+    total_earned_salary:float
     class Config:
-        orm_mode = True
+        from_attributes = True
+
 
 
 

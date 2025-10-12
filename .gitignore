@@ -1,0 +1,84 @@
+# ==========================================
+# 🐍 Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.log
+*.env
+.env
+.env.*
+.venv/
+venv/
+ENV/
+env/
+build/
+dist/
+
+# ==========================================
+# 🧰 FastAPI / Uvicorn / Starlette
+# ==========================================
+*.db
+instance/
+*.sqlite3
+*.sqlite
+*.db-journal
+
+# ==========================================
+# 🧪 Testing / Coverage
+# ==========================================
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+*.lcov
+.tox/
+
+# ==========================================
+# 🐳 Docker
+# ==========================================
+docker-compose.override.yml
+*.pid
+
+# ==========================================
+# 📦 Dependency managers
+# ==========================================
+poetry.lock
+Pipfile.lock
+
+# ==========================================
+# 📝 IDE / Editors
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ==========================================
+# 📄 Migrations (if using Alembic)
+# ==========================================
+migrations/versions/*.pyc
+migrations/__pycache__/
+migrations/*.log
+
+# ==========================================
+# 📁 Static / Media (if generated dynamically)
+# ==========================================
+staticfiles/
+media/
+uploads/
+
+# ==========================================
+# 🚀 Other
+# ==========================================
+*.bak
+*.tmp
