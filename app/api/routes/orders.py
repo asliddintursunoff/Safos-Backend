@@ -65,13 +65,13 @@ def create_order(
     db: Session = Depends(get_db),
     current_user: Agent = Depends(get_current_user)
 ):
+    order_in.agent_id = current_user.id
     # Admin orders are auto-approved, agent orders are not
     if current_user.role == "admin":
         order_in.is_approved = True
     else:
         order_in.is_approved = True
-        if order_in.agent_id != current_user.id:
-            raise HTTPException(403, "Agents can only create orders for themselves")
+        
 
     order = crud.create_order(db, order_in)
     return order
