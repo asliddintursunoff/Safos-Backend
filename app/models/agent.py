@@ -1,5 +1,6 @@
 from sqlalchemy import Column,Integer,String,Float,Enum as SQLEnum
 from sqlalchemy.orm import relationship
+from sqlalchemy import BigInteger
 from app.db.base import Base
 import enum
 class UserRole(str, enum.Enum):
@@ -16,7 +17,7 @@ class Agent(Base):
     percentage = Column(Float,default=0)
     total_given_salary = Column(Float, default=0)
     role = Column(SQLEnum(UserRole), default=UserRole.agent)
-    telegram_id = Column(Integer, unique=True, nullable=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
     orders = relationship("Order",back_populates="agent")
     
     orders = relationship(
