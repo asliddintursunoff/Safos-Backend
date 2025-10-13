@@ -150,7 +150,7 @@ def disapprove_order(order_id: int, db: Session = Depends(get_db), current_user:
 @router.post("/{order_id}/delivered", response_model=OrderOut)
 def delivered(order_id: int,is_delivered:bool, db: Session = Depends(get_db), current_user: Agent = Depends(get_current_user)):
         require_dostavchik_or_admin(current_user)
-        return crud.is_order_delivered(db, order_id,is_delivered)
+        return crud.is_order_delivered(db, order_id,current_user.id,is_delivered)
 
 
 from app.models.order import Order

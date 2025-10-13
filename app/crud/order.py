@@ -218,7 +218,7 @@ def delete_order(db:Session,id:int):
     
 
 
-def is_order_delivered(db: Session, order_id: int, b: bool):
+def is_order_delivered(db: Session, order_id: int,current_user_id:int, b: bool):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -228,6 +228,7 @@ def is_order_delivered(db: Session, order_id: int, b: bool):
             return order  # just return the order
         
         order.is_delivered = True
+        order.dostavchik_id = current_user_id
         order.delivered_date = datetime.now()
         
         if order.agent:
@@ -247,6 +248,7 @@ def is_order_delivered(db: Session, order_id: int, b: bool):
         
         order.is_delivered = False
         order.delivered_date = None
+        order.dostavchik_id = None
         
         if order.agent:
             order.agent.total_earned_salary -= order.agent_locked_price * order.agent.percentage / 100
