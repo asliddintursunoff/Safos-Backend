@@ -187,7 +187,18 @@ def update_order(db: Session, order_id: int, order_in: OrderCreate,updater_role:
 
 
 def order_approved(db:Session,order_id:int):
+    
     order = db.query(Order).filter(Order.id ==order_id).first()
+    if order.is_order_delivered == True:
+        if order.agent:
+            order.agent.total_earned_salary += order.agent_locked_price * order.agent.percentage / 100
+        if order.dostavchik:
+            order.dostavchik.total_earned_salary += order.dostavchik_extra_price * order.dostavchik.percentage/100
+        if order.admin_extra_price > 0:
+                admin = db.query(Agent).filter(Agent.role == UserRole.admin).first()
+                if admin:
+                    admin.total_earned_salary += order.admin_extra_price * admin.percentage / 100
+    
     order.is_approved = True
     db.commit()
     db.refresh(order)
@@ -195,6 +206,15 @@ def order_approved(db:Session,order_id:int):
 
 def order_not_approved(db:Session,order_id:int):
     order = db.query(Order).filter(Order.id ==order_id).first()
+    if order.is_order_delivered == True:
+        if order.agent:
+            order.agent.total_earned_salary -= order.agent_locked_price * order.agent.percentage / 100
+        if order.dostavchik:
+            order.dostavchik.total_earned_salary -= order.dostavchik_extra_price * order.dostavchik.percentage/100
+        if order.admin_extra_price > 0:
+                admin = db.query(Agent).filter(Agent.role == UserRole.admin).first()
+                if admin:
+                    admin.total_earned_salary -= order.admin_extra_price * admin.percentage / 100
     order.is_approved = False
     db.commit()
     db.refresh(order)
@@ -231,6 +251,8 @@ def is_order_delivered(db: Session, order_id: int,current_user_id:int, b: bool):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
+    if order.is_approved == False:
+        raise HTTPException(status_code=400,detail="Order is disapproved!")
     if b==True:  # mark as delivered
         if order.is_delivered:
             return order  # just return the order
