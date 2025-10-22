@@ -189,7 +189,7 @@ def update_order(db: Session, order_id: int, order_in: OrderCreate,updater_role:
 def order_approved(db:Session,order_id:int):
     
     order = db.query(Order).filter(Order.id ==order_id).first()
-    if order.is_order_delivered == True:
+    if order.is_delivered == True:
         if order.agent:
             order.agent.total_earned_salary += order.agent_locked_price * order.agent.percentage / 100
         if order.dostavchik:
@@ -206,7 +206,7 @@ def order_approved(db:Session,order_id:int):
 
 def order_not_approved(db:Session,order_id:int):
     order = db.query(Order).filter(Order.id ==order_id).first()
-    if order.is_order_delivered == True:
+    if order.is_delivered == True:
         if order.agent:
             order.agent.total_earned_salary -= order.agent_locked_price * order.agent.percentage / 100
         if order.dostavchik:
