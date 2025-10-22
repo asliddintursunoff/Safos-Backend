@@ -209,7 +209,15 @@ def delete_order(db:Session,id:int):
     order = db.query(Order).filter(Order.id ==id).first()
     if not order:
         return None
-    
+    if order.agent:
+        order.agent.total_earned_salary -= order.agent_locked_price * order.agent.percentage / 100
+    if order.dostavchik:
+        order.dostavchik.total_earned_salary -= order.dostavchik_extra_price * order.dostavchik.percentage/100
+    if order.admin_extra_price > 0:
+            admin = db.query(Agent).filter(Agent.role == UserRole.admin).first()
+            if admin:
+                admin.total_earned_salary -= order.admin_extra_price * admin.percentage / 100
+
     db.query(OrderItem).filter(OrderItem.order_id == order.id).delete()
     db.delete(order)
     db.commit()
