@@ -1,75 +1,73 @@
-
-
-```markdown
 # Safos-Backend
 
-**Backend service for a Telegram-based order management bot**  
-Safos-Backend is the server-side application for a Telegram bot that **manages orders** for a business. It allows multiple user roles — **admin**, **agent**, and **dostavchik** (delivery) — to create, update, delete, and track orders, while handling company finances and user management.
+**Backend service for a Telegram-based order management bot**
+
+Safos-Backend is a robust server-side application for a Telegram bot that **manages orders** for a business. It supports multiple user roles — **Admin**, **Agent**, and **Dostavchik** (delivery) — allowing them to create, update, delete, and track orders while managing company finances and user operations.
 
 ---
 
 ## 📌 Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [Architecture & Roles](#architecture--roles)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Environment Variables](#environment-variables)
-  - [Running Locally](#running-locally)
-- [API Documentation](#api-documentation)
-- [Data Models & Database](#data-models--database)
-- [Business Logic](#business-logic)
-- [Deployment](#deployment)
-- [Potential Improvements](#potential-improvements)
-- [Contributing](#contributing)
-- [License](#license)
+* [Overview](#overview)
+* [Key Features](#key-features)
+* [Technology Stack](#technology-stack)
+* [Architecture & Roles](#architecture--roles)
+* [Getting Started](#getting-started)
+
+  * [Prerequisites](#prerequisites)
+  * [Installation](#installation)
+  * [Environment Variables](#environment-variables)
+  * [Running Locally](#running-locally)
+* [API Documentation](#api-documentation)
+* [Data Models & Database](#data-models--database)
+* [Business Logic](#business-logic)
+* [Deployment](#deployment)
+* [Potential Improvements](#potential-improvements)
+* [Contributing](#contributing)
+* [License](#license)
 
 ---
 
 ## 🧾 Overview
 
-Safos-Backend is a **FastAPI** backend that supports a Telegram bot for **order management**.  
-The system allows:
+Safos-Backend is a **FastAPI** backend supporting a Telegram bot for **order management**. The system allows:
 
-- Users to **register via Telegram** (using Telegram ID and contact info).  
-- **Admins** to manage all orders, monitor users (agents/delivery), and oversee company financials.  
-- **Agents and Dostavchiks** to create, update, delete, and complete orders via the bot.  
-- Tracking **order lifecycle**, user performance, and computing financial data automatically.
+* User registration via Telegram (Telegram ID + contact info)
+* **Admins**: manage all orders, monitor users, and oversee company finances
+* **Agents & Dostavchiks**: create, update, delete, and complete orders
+* Track **order lifecycle**, user performance, and compute financial data automatically
 
-The main purpose of this backend is **efficient order management and processing** for the business.
+The goal is **efficient order management and processing**.
 
 ---
 
 ## 🚀 Key Features
 
-- 🔐 **Role-based access**: Admin, Agent, Dostavchik  
-- 📲 **Telegram-based authentication** (ID + contact)  
-- 📦 **Order management**: create, update, delete, complete  
-- 💰 **Financial management**: track revenues, cancellations, and salaries  
-- 📊 **Analytics & reporting**: orders per user, performance tracking  
-- 🧩 **Business logic**: handle cancellations, salary calculations, and order validations  
-- 🛡️ **Secure and validated API** using FastAPI + Pydantic
+* 🔐 **Role-based access**: Admin, Agent, Dostavchik
+* 📲 **Telegram authentication** (ID + contact)
+* 📦 **Order management**: create, update, delete, complete
+* 💰 **Financial management**: track revenues, cancellations, and salaries
+* 📊 **Analytics & reporting**: orders per user, performance tracking
+* 🧩 **Business logic**: handle cancellations, salary calculations, order validations
+* 🛡️ **Secure and validated API**: FastAPI + Pydantic
 
 ---
 
 ## 🛠 Technology Stack
 
-| Component        | Technology |
-|-----------------|------------|
-| Backend Framework | FastAPI |
-| Language         | Python |
-| Database         | PostgreSQL |
-| ORM              | SQLAlchemy |
-| Validation       | Pydantic / Pydantic Settings |
-| Config           | python-dotenv |
-| Server           | Uvicorn |
-| Deployment       | Railway |
+| Component         | Technology                   |
+| ----------------- | ---------------------------- |
+| Backend Framework | FastAPI                      |
+| Language          | Python                       |
+| Database          | PostgreSQL                   |
+| ORM               | SQLAlchemy                   |
+| Validation        | Pydantic / Pydantic Settings |
+| Config            | python-dotenv                |
+| Server            | Uvicorn                      |
+| Deployment        | Railway                      |
 
-🔗 **Production API**: [https://safos-backend-production.up.railway.app](https://safos-backend-production.up.railway.app)  
-🔗 **Swagger Docs**: [https://safos-backend-production.up.railway.app/docs](https://safos-backend-production.up.railway.app/docs)  
+🔗 **Production API**: [https://safos-backend-production.up.railway.app](https://safos-backend-production.up.railway.app)
+🔗 **Swagger Docs**: [https://safos-backend-production.up.railway.app/docs](https://safos-backend-production.up.railway.app/docs)
 🔗 **Local Docs**: `/backend/docs` (if running locally)
 
 ---
@@ -77,17 +75,15 @@ The main purpose of this backend is **efficient order management and processing*
 ## 🏗 Architecture & Roles
 
 ```
-
 +-------------------+       +-----------------+       +-------------------+
 |   Telegram Bot     | <---> |   Safos Backend  | <--> |  Database Layer   |
 |  (Admin/Agent/Del) |       |  (FastAPI + API) |       | (PostgreSQL + ORM)|
 +-------------------+       +-----------------+       +-------------------+
+```
 
-````
-
-- 🤖 **Telegram Bot**: User interface for admins, agents, and delivery users  
-- ⚙️ **Backend (FastAPI)**: Handles all business logic, validation, and API endpoints  
-- 🗄 **Database**: Stores users, orders, financial data, and roles
+* 🤖 **Telegram Bot**: Interface for Admins, Agents, and Dostavchiks
+* ⚙️ **Backend (FastAPI)**: Business logic, validation, and API endpoints
+* 🗄 **Database**: Stores users, orders, financial data, and roles
 
 ---
 
@@ -95,18 +91,18 @@ The main purpose of this backend is **efficient order management and processing*
 
 ### 📌 Prerequisites
 
-- Python 3.9+  
-- PostgreSQL  
-- Git  
+* Python 3.9+
+* PostgreSQL
+* Git
 
 ### 📥 Installation
 
 ```bash
 git clone https://github.com/asliddintursunoff/Safos-Backend.git
 cd Safos-Backend
-````
+```
 
-📌 Create a virtual environment:
+Create a virtual environment:
 
 ```bash
 python3 -m venv venv
@@ -115,7 +111,7 @@ source venv/bin/activate   # macOS / Linux
 venv\Scripts\activate      # Windows
 ```
 
-📌 Install dependencies:
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -151,8 +147,6 @@ http://127.0.0.1:8000
 
 ## 📚 API Documentation
 
-Interactive Swagger documentation:
-
 * **Online Docs**: [`/docs`](https://safos-backend-production.up.railway.app/docs)
 * **Local Docs**: `/backend/docs`
 
@@ -183,15 +177,15 @@ Interactive Swagger documentation:
 
 * Create, update, delete, and complete orders
 * Track which user handled each order
-* Calculate salaries and commissions based on order activity
-* Handle cancellations and their financial impact
-* Admin can view all order statistics and financial reports
+* Calculate salaries and commissions
+* Handle cancellations and financial impacts
+* Admins can view all order statistics and reports
 
 ---
 
 ## 🚀 Deployment
 
-* Deployed on **Railway**: [https://safos-backend-production.up.railway.app](https://safos-backend-production.up.railway.app)
+* **Railway deployment**: [https://safos-backend-production.up.railway.app](https://safos-backend-production.up.railway.app)
 * Uses environment variables for configuration
 * Runs on **Uvicorn** in production
 
@@ -203,7 +197,7 @@ Interactive Swagger documentation:
 * Unit & integration tests
 * Dockerized deployment
 * Background task processing (Celery / RQ)
-* Logging, monitoring, error tracking
+* Logging, monitoring, and error tracking
 
 ---
 
@@ -222,6 +216,3 @@ Interactive Swagger documentation:
 ## 📄 License
 
 This project is licensed under the **MIT License**.
-
-```
-
