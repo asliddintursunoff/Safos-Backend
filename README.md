@@ -152,36 +152,7 @@ http://127.0.0.1:8000
 
 ---
 
-## 🗃 Data Models & Database
 
-### 📌 User Model
-
-* Telegram ID
-* Contact phone
-* Role: Admin / Agent / Dostavchik
-
-### 📌 Order Model
-
-* Status: active / canceled / completed
-* Assigned agent/delivery person
-* Price and financial metadata
-
-### 📌 Finance Model
-
-* Salary/commission tracking
-* Revenue & cancellation logic
-
----
-
-## 🧠 Business Logic
-
-* Create, update, delete, and complete orders
-* Track which user handled each order
-* Calculate salaries and commissions
-* Handle cancellations and financial impacts
-* Admins can view all order statistics and reports
-
----
 
 ## 🚀 Deployment
 
@@ -213,6 +184,3 @@ http://127.0.0.1:8000
 
 ---
 
-## 📄 License
-
-This project is licensed under the **MIT License**.
