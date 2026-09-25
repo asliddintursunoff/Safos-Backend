@@ -17,8 +17,9 @@ class CreateAgent(AgentBase):
 
 class AgentOut(AgentBase):
     id: int
-    total_given_salary:float
-    total_earned_salary:float
+    percentage: Optional[float] = 0
+    total_given_salary: Optional[float] = 0
+    total_earned_salary: Optional[float] = 0
     class Config:
         from_attributes = True
 

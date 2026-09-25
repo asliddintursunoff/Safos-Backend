@@ -42,6 +42,11 @@ class Order(Base):
         foreign_keys=[dostavchik_id]  # explicitly point to dostavchik_id
     )
 
+    @property
+    def print_url(self):
+        from app.services.printing import signed_print_url
+        return signed_print_url(self.id)
+
     @hybrid_property
     def get_total_price(self):
         if self.is_approved:
@@ -57,6 +62,34 @@ class Order(Base):
             .where(OrderItem.order_id == cls.id)
             .label("get_total_price")
         )
+
+class OrderContribution(Base):
+    """
+    Money ledger: who added which quantity of which product to an order.
+
+    Every time somebody increases a product in an order a row is added with the
+    quantity they added and the unit price at that moment. When a product is
+    decreased, quantity is taken back from the rows (see services/order_money.py).
+    The Order.*_price columns are kept as role totals of this ledger so the old
+    reports keep working.
+    """
+    __tablename__ = "order_contributions"
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True)
+    agent_id = Column(Integer, ForeignKey("agents.id", ondelete="SET NULL"), nullable=True, index=True)
+    role = Column(String(20), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
+    quantity = Column(Float, nullable=False, default=0)
+    unit_price = Column(Float, nullable=False, default=0)
+    # salary actually given to agent_id for this row when the order was delivered;
+    # used to reverse exactly the same amount on un-deliver / disapprove / delete
+    credited_salary = Column(Float, nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.now)
+
+    @property
+    def value(self):
+        return (self.quantity or 0) * (self.unit_price or 0)
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"

@@ -12,8 +12,9 @@ if DATABASE_URL.startswith("sqlite"):
     )
 else:
     engine = create_engine(
-        DATABASE_URL
-        # No connect_args for Postgres
+        DATABASE_URL,
+        pool_pre_ping=True,   # drop dead connections instead of failing the request
+        pool_recycle=1800,
     )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

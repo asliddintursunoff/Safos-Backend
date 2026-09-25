@@ -1,4 +1,5 @@
 from app.models.product import Product
+from app.models.order import OrderItem
 from sqlalchemy.orm import Session
 from app.schemas.product import CreateProduct
 from fastapi import HTTPException
@@ -54,6 +55,11 @@ def delete(db:Session,id:int):
     if not product:
         raise HTTPException(status_code=404,detail="Product Not Found")
     
+    # deleting a product that is used in orders would make those orders lose their prices/totals
+    used = db.query(OrderItem.id).filter(OrderItem.product_id == id).first() is not None
+    if used:
+        raise HTTPException(status_code=409, detail="Bu mahsulot zakazlarda ishlatilgan, o'chirib bo'lmaydi")
+
     db.delete(product)
     db.commit()
     return {"message":"product deleted successfully"}

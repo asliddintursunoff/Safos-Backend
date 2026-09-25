@@ -1,21 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy import func, and_
+from typing import List, Optional
+from datetime import datetime,date
 from app.crud import order as crud
-from app.schemas.order import OrderCreate, OrderOut
+from app.schemas.order import OrderCreate, OrderOut, OrderPatch
 from app.api.deps import get_db
-from app.models.agent import Agent
+from app.models.agent import Agent, UserRole
+from app.models.order import Order
 from app.core.security import get_current_user
 from app.core.auth import require_admin, require_self_or_admin,require_self_or_dostavchik_or_admin,require_dostavchik_or_admin
 from app.services.order import calculate_total_items
+from app.services.printing import verify_order_signature, build_print_page_url
 router = APIRouter()
+# no X-Api-Key here: opened from the Telegram print button, protected by a signed token instead
+public_router = APIRouter()
 
-
-
-from fastapi import  Depends, Query
-from typing import Optional
-from datetime import datetime,date
-from sqlalchemy import func, and_
 
 @router.get("/total-price")
 def get_total_orders_price(
@@ -35,7 +36,8 @@ def get_total_orders_price(
     - No filters → total for all orders.
     """
     require_admin(current_user)
-    query = db.query(func.coalesce(func.sum(Order.get_total_price), 0))
+    # disapproved orders are worth 0 (same as Order.get_total_price for a single order)
+    query = db.query(func.coalesce(func.sum(Order.get_total_price), 0)).filter(Order.is_approved == True)
 
     # 🕒 Today only
     if today_only:
@@ -66,12 +68,8 @@ def create_order(
     current_user: Agent = Depends(get_current_user)
 ):
     order_in.agent_id = current_user.id
-    # Admin orders are auto-approved, agent orders are not
-    if current_user.role == "admin":
-        order_in.is_approved = True
-    else:
-        order_in.is_approved = True
-        
+    order_in.dostavchik_id = None
+    order_in.is_approved = True
 
     order = crud.create_order(db, order_in)
     return order
@@ -80,14 +78,14 @@ def create_order(
 @router.get("/calculating-existing-orders")
 def calculating_existing_orders(db:Session=Depends(get_db)):
     orders = crud.get_all(db)
-    
+
     return calculate_total_items(orders)
 
 
 # ----------------- GET ALL ORDERS -----------------
 @router.get("/", response_model=List[OrderOut])
 def get_all_orders(db: Session = Depends(get_db), current_user: Agent = Depends(get_current_user)):
-    
+
     return crud.get_all(db)
 # ----------------- GET ORDER BY ID -----------------
 @router.get("/{order_id}", response_model=OrderOut)
@@ -115,9 +113,7 @@ def update_order(
 
     require_self_or_dostavchik_or_admin(current_user, order.agent_id)
 
-    # agents cannot approve orders
-
-    updated_order = crud.update_order(db, order_id, order_in,current_user.role)
+    updated_order = crud.update_order(db, order_id, order_in,current_user.role, updater=current_user)
     return updated_order
 
 # ----------------- DELETE ORDER -----------------
@@ -153,15 +149,14 @@ def delivered(order_id: int,is_delivered:bool, db: Session = Depends(get_db), cu
         return crud.is_order_delivered(db, order_id,current_user.id,is_delivered)
 
 
-from app.models.order import Order
-from app.schemas.order import OrderPatch
 @router.patch("/patch/{order_id}", response_model=OrderOut)
-def patch_order(order_id: int, patch_data: OrderPatch, db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
+def patch_order(order_id: int, patch_data: OrderPatch, db: Session = Depends(get_db), current_user: Agent = Depends(get_current_user)):
+    order = db.query(Order).filter(Order.id == order_id).with_for_update().populate_existing().first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    require_self_or_dostavchik_or_admin(current_user, order.agent_id)
 
-    update_data = patch_data.dict(exclude_unset=True)
+    update_data = patch_data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(order, key, value)
 
@@ -169,3 +164,13 @@ def patch_order(order_id: int, patch_data: OrderPatch, db: Session = Depends(get
     db.refresh(order)
     return order
 
+
+# ----------------- PRINT (short link for the 🖨 Print button) -----------------
+@public_router.get("/print/orders/{order_id}", include_in_schema=False)
+def print_order(order_id: int, t: str = Query(...), db: Session = Depends(get_db)):
+    if not verify_order_signature(order_id, t):
+        raise HTTPException(status_code=403, detail="Invalid print link")
+    order = crud.get_order(db, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Zakaz topilmadi")
+    return RedirectResponse(build_print_page_url(order), status_code=307)

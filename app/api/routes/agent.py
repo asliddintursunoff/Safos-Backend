@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException,Query
+from fastapi import APIRouter, Depends, HTTPException,Query,Header
 from sqlalchemy.orm import Session
 from app.schemas.agent import CreateAgent, AgentOut,AgentWithSalaryOut,RemainingSalary,TotalPrice,TelegramAttachRequest
 from app.crud import agent as crud
@@ -52,51 +52,22 @@ def get_agents_earnings(
     """
     require_admin(current_user)
 
-    query = db.query(
-        Agent.id.label("agent_id"),
-        Agent.first_name,
-        Agent.last_name,
-        Agent.role,
-        func.coalesce(func.sum(Order.agent_locked_price), 0).label("agent_total"),
-        func.coalesce(func.sum(Order.dostavchik_extra_price), 0).label("dostavchik_total"),
-        func.coalesce(func.sum(Order.admin_extra_price), 0).label("admin_total")
-    ).join(Agent, Agent.id == Order.agent_id, isouter=True)
-
-    # 🕒 Apply date filters
-    if today_only:
-        today_start = datetime.combine(date.today(), datetime.min.time())
-        today_end = datetime.combine(date.today(), datetime.max.time())
-        query = query.filter(and_(Order.order_date >= today_start, Order.order_date <= today_end))
-
-    elif which_day:
-        day_start = datetime.combine(which_day.date(), datetime.min.time())
-        day_end = datetime.combine(which_day.date(), datetime.max.time())
-        query = query.filter(and_(Order.order_date >= day_start, Order.order_date <= day_end))
-
-    elif start_date and end_date:
-        query = query.filter(and_(Order.order_date >= start_date, Order.order_date <= end_date))
-
-    query = query.group_by(Agent.id, Agent.first_name, Agent.last_name, Agent.role)
-    results = query.all()
-
-    # 🧮 Format output based on role
     output = []
-    for row in results:
-        if row.role == "agent":
-            earnings = row.agent_total
-        elif row.role == "dostavchik":
-            earnings = row.dostavchik_total
-        elif row.role == "admin":
-            earnings = row.admin_total
-        else:
-            earnings = 0
-
-        output.append({
-            "agent_id": row.agent_id,
-            "full_name": f"{row.first_name or ''} {row.last_name or ''}".strip(),
-            "role": row.role,
-            "earnings": earnings
-        })
+    for agent in crud.get_all(db):
+        row = {
+            "agent_id": agent.id,
+            "full_name": f"{agent.first_name or ''} {agent.last_name or ''}".strip(),
+            "role": agent.role,
+            "earnings": crud.get_person_total(
+                db, agent,
+                which_day=None if today_only else which_day,
+                start_date=start_date if (not today_only and not which_day and start_date and end_date) else None,
+                end_date=end_date if (not today_only and not which_day and start_date and end_date) else None,
+                today_only=bool(today_only),
+            ),
+        }
+        if row["earnings"]:
+            output.append(row)
 
     return {"results": output}
 @router.get("/taking-users-price-with-id")
@@ -129,6 +100,12 @@ def get_remaining_salary(
 
 
 
+@router.get("/me", response_model=AgentOut)
+def get_me(current_user: Agent = Depends(get_current_user)):
+    """Profile of the Telegram user calling (used by the bot to always show the right menu)."""
+    return current_user
+
+
 @router.post("/verify-telegram", response_model=AgentOut)
 def verify_and_attach(request: TelegramAttachRequest, db: Session = Depends(get_db)):
     agent = crud.verify_and_attach_telegram_id(db, request.phone_number, request.telegram_id)
@@ -145,8 +122,14 @@ def verify_and_attach(request: TelegramAttachRequest, db: Session = Depends(get_
 #     return {**agent.__dict__, "remaining_salary": remaining}
 
 @router.post('/create', response_model=AgentWithSalaryOut)
-def create_agent(agent_in: CreateAgent, db: Session = Depends(get_db)):
-
+def create_agent(agent_in: CreateAgent, db: Session = Depends(get_db), x_telegram_id: Optional[int] = Header(None)):
+    # the very first user can be created without login (to create the first admin);
+    # after that only an admin can create users
+    if db.query(Agent.id).first() is not None:
+        current_user = db.query(Agent).filter(Agent.telegram_id == x_telegram_id).first() if x_telegram_id else None
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        require_admin(current_user)
     agent = crud.create(db, agent_in)
     remaining = crud.get_agent_salary_price(db, agent.id)
     return {**agent.__dict__, "remaining_salary": remaining}
@@ -181,7 +164,7 @@ def get_agent(  agent_id:int,
                 current_user:Agent = Depends(get_current_user),
                 
             ):
-    require_self_or_admin(current_user,current_user.id)
+    require_self_or_admin(current_user,agent_id)
     return crud.get_by_id(db,agent_id)
 
 
@@ -196,7 +179,7 @@ from fastapi import Body
 #salary part
 @router.post('/add-salary/{agent_id}',response_model = AgentWithSalaryOut)
 def add_salary(agent_id:int,
-               salary_amount:int=Body(..., embed=True), 
+               salary_amount:float=Body(..., embed=True), 
                db:Session = Depends(get_db),
     current_user:Agent = Depends(get_current_user)):
     require_admin(current_user)
